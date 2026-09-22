@@ -12,136 +12,80 @@ from selenium.common.exceptions import (
 )
 
 chrome_options = Options()
-chrome_options.add_argument("--headless=new")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
+#chrome_options.add_argument("--headless=new")
+#chrome_options.add_argument("--no-sandbox")
+#chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--window-size=640,720")
 
 try:
     browser = webdriver.Chrome(options=chrome_options)
     browser.get("https://www.google.com/finance/beta")
-    time.sleep(3)
+    time.sleep(3)#
 except Exception as e:
     print(f"URL INVÁLIDA ou Erro ao iniciar o navegador ⚠️: {e}")
-print("> ACESSANDO GOOGLE FINANCE ...")
+print("> ACESSANDO GOOGLE FINANCE ...........")
 print("########## INICIANDO COLETA ##########")
-def search_finance():
-    try:
-        search = browser.find_element(
-            "xpath", 
-            "/html/body/c-wiz[1]/div/div/div[2]/span[1]/div[1]/a"
-        )
-        search.click()
-        time.sleep(3)
 
-        search_select = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[1]/textarea",
-        )
-        search_select.click()
-
-    except NoSuchElementException as e:
-        print(f"Erro: Elemento não encontrado. Detalhes: {e}")
-    except ElementClickInterceptedException:
-        print("Erro: Elemento sobreposto, clique interceptado.")
-    except WebDriverException as e:
-        print(f"Erro geral do Selenium: {e}")
-    except Exception as e:
-        print(f"Erro inesperado no Search: {e}")
-
+path_element_value = '//*[@id="yDmH0d"]/c-wiz[3]/div/div/div/div[2]/main/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[1]/span/span'
+path_element_perc = '//*[@id="yDmH0d"]/c-wiz[3]/div/div/div/div[2]/main/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[2]/span/span'
 
 def get_usd_quote():
     print("> Coletando informações do dolar...")
-    text_usd = None
-    text_usd_perc = None
+    time.sleep(2)
+    browser.get(r'https://www.google.com/finance/beta/quote/USD-BRL')
+    copy_text_usd = None
+    copy_text_perc_usd = None
     try:
-        select_usd = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[1]/textarea",
-        )
-        select_usd.send_keys("USD/BRL")
-        time.sleep(2)
+        time.sleep(3)
+        copy_usd = browser.find_element('xpath', path_element_value)
+        copy_text_usd = copy_usd.text.strip() or copy_usd.get_attribute("textContent").strip()
+        if not copy_usd:
+            raise NoSuchElementException("Elemento de cotação de USD não localizado com os seletores disponíveis.")
+        print("Cotação Atual do USD(R$):", copy_text_usd)
 
-        select_usd_click = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[2]/div[2]/span/button/div",
-        )
-        select_usd_click.click()
-        time.sleep(4)
-
-        copy_usd = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[1]/span/span",
-        )
-        text_usd = (
-            copy_usd.text.strip() or copy_usd.get_attribute("textContent").strip()
-        )
-
-        print("Cotação Atual do USD(R$):", text_usd)
-
-        time.sleep(2)
-        copy_usd_perc = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[2]/span/span",
-        )
-        text_usd_perc = (
-            copy_usd_perc.text.strip()
-            or copy_usd_perc.get_attribute("textContent").strip()
-        )
-        print("Percentual atual do USD(%):", text_usd_perc)
+        copy_perc_usd = browser.find_element('xpath', path_element_perc)
+        copy_text_perc_usd = copy_perc_usd.text.strip() or copy_perc_usd.get_attribute("textContent").strip()
+        if not copy_perc_usd:
+            raise NoSuchElementException("Elemento de percentual de USD não localizado com os seletores disponíveis.")
+        print("Percentual atual do USD(%):", copy_text_perc_usd)
         print("##################################")
+    
+        time.sleep(2)
+        
     except NoSuchElementException as e:
-        print(f"Erro: Elemento de cotação não localizado. Detalhes: {e}")
+        print(f"Erro: Elemento de cotação de USD não localizado. Detalhes: {e}")
+    except ElementClickInterceptedException:
+        print("Erro: Botão sobreposto na busca de USD.")
+    except WebDriverException as e:
+        print(f"Erro geral do Selenium ao buscar USD: {e}")
     except Exception as e:
         print(f"Erro inesperado durante a raspagem de USD: {e}")
-    finally:
-        try:
-            browser.get("https://www.google.com/finance/beta")
-        except Exception as e:
-            print(f"Erro ao redirecionar: {e}")
 
-    return text_usd, text_usd_perc
+    return copy_text_usd, copy_text_perc_usd
 
 time.sleep(2)
 
 def get_eur_quote():
     print("> Coletando informações do euro...")
-    text_eur = None
-    text_eur_perc = None
+    browser.get(r'https://www.google.com/finance/beta/quote/EUR-BRL')
+    copy_text_eur = None
+    copy_text_perc_eur = None
     try:
-        select_eur = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[1]/textarea",
-        )
-        select_eur.send_keys("EUR/BRL")
-        time.sleep(2)
-
-        select_eur_click = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[2]/div[2]/span/button/div",
-        )
-        select_eur_click.click()
-        time.sleep(5)
-
-        copy_eur = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[1]/span/span",
-        )
-        text_eur = (
-            copy_eur.text.strip() or copy_eur.get_attribute("textContent").strip()
-        )
-        print("Cotação do EUR(R$):", text_eur)
-
-        time.sleep(2)
-        copy_eur_perc = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[2]/span/span",
-        )
-        text_eur_perc = (
-            copy_eur_perc.text.strip()
-            or copy_eur_perc.get_attribute("textContent").strip()
-        )
-        print("Percentual do EUR(%):", text_eur_perc)
+        time.sleep(3)
+        copy_eur = browser.find_element('xpath', path_element_value)
+        copy_text_eur = copy_eur.text.strip() or copy_eur.get_attribute("textContent").strip()
+        if not copy_eur:
+            raise NoSuchElementException("Elemento de cotação de USD não localizado com os seletores disponíveis.")
+        print("Cotação Atual do EUR(R$):", copy_text_eur)
+        
+        copy_perc_eur = browser.find_element('xpath',path_element_perc)
+        copy_text_perc_eur = copy_perc_eur.text.strip() or copy_perc_eur.get_attribute("textContent").strip()
+        if not copy_perc_eur:
+            raise NoSuchElementException("Elemento de percentual de USD não localizado com os seletores disponíveis.")
+        print("Percentual atual do EUR(%):", copy_text_perc_eur)
         print("##################################")
+            
+        time.sleep(2)
     except NoSuchElementException as e:
         print(f"Erro: Elemento de cotação de EUR não localizado. Detalhes: {e}")
     except ElementClickInterceptedException:
@@ -155,50 +99,30 @@ def get_eur_quote():
             browser.get("https://www.google.com/finance/beta")
         except Exception as e:
             print(f"Erro ao redirecionar: {e}")
-
-    return text_eur, text_eur_perc
+    return copy_text_eur, copy_text_perc_eur
 
 time.sleep(2)
 
 def get_cny_quote():
     print("> Coletando informações do iene ...")
-    text_cny = None
-    text_cny_perc = None
+    browser.get(r'https://www.google.com/finance/beta/quote/CNY-BRL')
+    copy_text_cny = None
+    copy_text_perc_cny = None
     try:
-        select_cny = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[1]/textarea",
-        )
-        select_cny.send_keys("CNY/BRL")
-        time.sleep(2)
-
-        select_cny_click = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[2]/div[2]/span/button/div",
-        )
-        select_cny_click.click()
         time.sleep(3)
-
-        copy_cny = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[1]/span/span",
-        )
-        text_cny = (
-            copy_cny.text.strip() or copy_cny.get_attribute("textContent").strip()
-        )
-        print("Cotação atual do CNY(R$):", text_cny)
-        
-        time.sleep(2)
-        copy_cny_perc = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[2]/span/span",
-        )
-        text_cny_perc = (
-            copy_cny_perc.text.strip()
-            or copy_cny_perc.get_attribute("textContent").strip()
-        )
-        print("Percentual atual do CNY(%):", text_cny_perc)
+        copy_cny = browser.find_element('xpath', path_element_value)
+        copy_text_cny = copy_cny.text.strip() or copy_cny.get_attribute("textContent").strip()
+        if not copy_cny:
+            raise NoSuchElementException("Elemento de cotação de USD não localizado com os seletores disponíveis.")
+        print("Cotação Atual do CNY(R$):", copy_text_cny)
+                
+        copy_perc_cny = browser.find_element('xpath',path_element_perc)
+        copy_text_perc_cny = copy_perc_cny.text.strip() or copy_perc_cny.get_attribute("textContent").strip()
+        if not copy_perc_cny:
+            raise NoSuchElementException("Elemento de percentual de USD não localizado com os seletores disponíveis.")
+        print("Percentual atual do CNY(%):", copy_text_perc_cny)
         print("##################################")
+        
     except NoSuchElementException as e:
         print(f"Erro: Elemento de cotação de CNY não localizado. Detalhes: {e}")
     except ElementClickInterceptedException:
@@ -213,49 +137,30 @@ def get_cny_quote():
         except Exception as e:
             print(f"Erro ao redirecionar: {e}")
 
-    return text_cny, text_cny_perc
+    return copy_text_cny, copy_text_perc_cny
 
 time.sleep(2)
 
 def get_btc_quote():
     print("> Coletando informações do bitcoin...")
-    text_btc = None
-    text_btc_perc = None
+    browser.get(r'https://www.google.com/finance/beta/quote/BTC-BRL')
+    copy_text_btc = None
+    copy_text_perc_btc = None
     try:
-        select_btc = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[1]/textarea",
-        )
-        select_btc.send_keys("BTC/BRL")
-        time.sleep(2)
-
-        select_btc_click = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[2]/div[2]/span/button/div",
-        )
-        select_btc_click.click()
         time.sleep(3)
-
-        copy_btc = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[1]/span/span",
-        )
-        text_btc = (
-            copy_btc.text.strip() or copy_btc.get_attribute("textContent").strip()
-        )
-        print("Cotação atual do BTC(R$):", text_btc)
-
-        time.sleep(2)
-        copy_btc_perc = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[2]/span/span",
-        )
-        text_btc_perc = (
-            copy_btc_perc.text.strip()
-            or copy_btc_perc.get_attribute("textContent").strip()
-        )
-        print("Percentual do BTC(%):", text_btc_perc)
+        copy_btc = browser.find_element('xpath', path_element_value)
+        copy_text_btc = copy_btc.text.strip() or copy_btc.get_attribute("textContent").strip()
+        if not copy_btc:
+            raise NoSuchElementException("Elemento de cotação de USD não localizado com os seletores disponíveis.")
+        print("Cotação Atual do BTC(R$):", copy_text_btc)
+        
+        copy_perc_btc = browser.find_element('xpath',path_element_perc)
+        copy_text_perc_btc = copy_perc_btc.text.strip() or copy_perc_btc.get_attribute("textContent").strip()
+        if not copy_perc_btc:
+            raise NoSuchElementException("Elemento de percentual de USD não localizado com os seletores disponíveis.")
+        print("Percentual atual do EUR(%):", copy_text_perc_btc)
         print("##################################")
+        
     except NoSuchElementException as e:
         print(f"Erro: Elemento de cotação de BTC não localizado. Detalhes: {e}")
     except ElementClickInterceptedException:
@@ -270,48 +175,29 @@ def get_btc_quote():
         except Exception as e:
             print(f"Erro ao redirecionar: {e}")
 
-    return text_btc, text_btc_perc
+    return copy_text_btc, copy_text_perc_btc
 
 time.sleep(2)
 
 def get_eth_quote():
     print("> Coletando informações do ether...")
-    text_eth = None
-    text_eth_perc = None
+    browser.get(r'https://www.google.com/finance/beta/quote/ETH-BRL')
+    copy_text_eth = None
+    copy_text_perc_eth = None
     try:
-        select_eth = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[1]/textarea",
-        )
-        select_eth.send_keys("ETH/BRL")
-        time.sleep(2)
-
-        select_eth_click = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[5]/div/div[1]/div[2]/div[2]/div[5]/div/div[2]/div[2]/span/button/div",
-        )
-        select_eth_click.click()
         time.sleep(3)
-
-        copy_eth = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[1]/span/span",
-        )
-        text_eth = (
-            copy_eth.text.strip() or copy_eth.get_attribute("textContent").strip()
-        )
-        print("Cotação do ETH(R$):", text_eth)
-
-        time.sleep(2)
-        copy_eth_perc = browser.find_element(
-            "xpath",
-            "/html/body/c-wiz[4]/c-wiz/div/div/div/div[2]/div[2]/div/div/c-wiz/div/div[3]/c-wiz/div/div/div[1]/div/div[2]/div/div[1]/div[2]/span/span",
-        )
-        text_eth_perc = (
-            copy_eth_perc.text.strip()
-            or copy_eth_perc.get_attribute("textContent").strip()
-        )
-        print("Percentual do ETH(%):", text_eth_perc)
+        copy_eth = browser.find_element('xpath', path_element_value)
+        copy_text_eth = copy_eth.text.strip() or copy_eth.get_attribute("textContent").strip()
+        if not copy_eth:
+            raise NoSuchElementException("Elemento de cotação de USD não localizado com os seletores disponíveis.")
+        print("Cotação Atual do EUR(R$):", copy_text_eth)
+        
+        copy_perc_eth = browser.find_element('xpath',path_element_perc)
+        copy_text_perc_eth = copy_perc_eth.text.strip() or copy_perc_eth.get_attribute("textContent").strip()
+        if not copy_perc_eth:
+            raise NoSuchElementException("Elemento de percentual de USD não localizado com os seletores disponíveis.")
+        print("Percentual atual do EUR(%):", copy_text_perc_eth)
+        print("##################################")
 
     except NoSuchElementException as e:
         print(f"Erro: Elemento de cotação de ETH não localizado. Detalhes: {e}")
@@ -326,7 +212,7 @@ def get_eth_quote():
             browser.get("https://www.google.com/finance/beta")
         except Exception as e:
             print(f"Erro ao redirecionar: {e}")
-    return text_eth, text_eth_perc
+    return copy_text_eth, copy_text_perc_eth
 
 def clean_percentage_value(perc_str):
     if not perc_str or pd.isna(perc_str):
@@ -386,7 +272,7 @@ def save_quote_by_columns(
     print(f" Dados da moeda '{currency_symbol}'✅")
 
 
-credencial_json = r"chave.json"
+credencial_json = r""
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
@@ -403,25 +289,19 @@ except Exception as e:
 
 
 if __name__ == "__main__":
-    search_finance()
     value_usd, var_usd = get_usd_quote()
     time.sleep(5)
-    
-    search_finance()
 
     value_eur, var_eur = get_eur_quote()
     time.sleep(5)
-    search_finance()
 
     # Coleta cotação do Yuan Chinês
     value_cny, var_cny = get_cny_quote()
     time.sleep(5)
-    search_finance()
 
     # Coleta cotação do Bitcoin
     value_btc, var_btc = get_btc_quote()
     time.sleep(5)
-    search_finance()
 
     # Coleta cotação do Ether
     value_eth, var_eth = get_eth_quote()
