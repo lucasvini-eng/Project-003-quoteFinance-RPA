@@ -1,18 +1,18 @@
-# 📊 Automação de Cotações Financeiras & Pipeline de Dados
+# 📊 Financial Quote Automation & Data Pipeline
 
-### 🔗 Painel Interativo
+### 🔗 Interactive Dashboard
 
-> **Clique aqui para visualizar o Painel Interativo**
+> **Click here to view the Interactive Dashboard**
 
-[📊 Acessar (https://project-003-quotefinance-rpa-btxecz6b27dmwymtsnruyd.streamlit.app/)
+[📊 Access (https://project-003-quotefinance-rpa-btxecz6b27dmwymtsnruyd.streamlit.app/)
 
 ---
 
-Este projeto consiste em uma **pipeline automatizada de coleta, processamento, armazenamento e visualização de dados do mercado financeiro**.
+This project consists of an **automated pipeline for collecting, processing, storing, and visualizing financial market data**.
 
-Utilizando **Python** e **Selenium**, o sistema realiza *web scraping* das cotações das principais moedas e criptomoedas diretamente do **Google Finance**, consolida e trata os dados com **Pandas** e os envia para uma planilha do **Google Sheets** por meio das APIs do **Google Cloud Platform (GCP)**.
+Using **Python** and **Selenium**, the system performs *web scraping* of quotes for major currencies and cryptocurrencies directly from **Google Finance**, consolidates and processes the data with **Pandas**, and sends it to a **Google Sheets** spreadsheet via the **Google Cloud Platform (GCP)** APIs.
 
-Por fim, os dados são consumidos por um painel interativo desenvolvido no **Streamlit**.
+Finally, the data is displayed in an interactive dashboard built with **Streamlit**.
 
 ---
 
